@@ -1,4 +1,10 @@
 package aluralatam.ForoHub.topico;
 
-public record DatosActualizarTopico() {
+
+
+public record DatosActualizarTopico(
+                                    String titulo,
+                                    String mensaje,
+                                    String autor,
+                                    String curso) {
 }
