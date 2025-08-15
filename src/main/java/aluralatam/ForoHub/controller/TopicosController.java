@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -21,13 +22,20 @@ public class TopicosController {
 
     @Transactional
     @PostMapping
-    public void nuevoTopico (@RequestBody @Valid DatosNuevoTopico datos){
-        repository.save(new Topico(datos));
+    public ResponseEntity nuevoTopico (@RequestBody @Valid DatosNuevoTopico datos, UriComponentsBuilder uriComponentsBuilder){
+
+        var topico = new Topico(datos);
+                repository.save(topico);
+
+        var uri = uriComponentsBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(new DatosDetalleTopico(topico));
     }
 
     @GetMapping
-    public Page<DatosListaTopico> listar (Pageable paginacion) {
-       return repository.findAllByActivoTrue(paginacion).map(DatosListaTopico :: new);
+    public ResponseEntity<Page<DatosListaTopico>> listar (Pageable paginacion) {
+       var page = repository.findAllByActivoTrue(paginacion).map(DatosListaTopico :: new);
+       return ResponseEntity.ok(page);
     }
 
     @GetMapping ("/{id}")
@@ -39,18 +47,22 @@ public class TopicosController {
 
     @Transactional
     @PutMapping ("/{id}")
-    public void actualizar (@PathVariable Long id,@RequestBody @Valid DatosActualizarTopico datos){
+    public ResponseEntity actualizar (@PathVariable Long id,@RequestBody @Valid DatosActualizarTopico datos){
         var topico = repository.getReferenceById(id);
 
         topico.actualizarinformacion(datos);
+
+        return ResponseEntity.ok(new DatosDetalleTopico(topico));
     }
 
     @Transactional
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id){
+    public ResponseEntity eliminar(@PathVariable Long id){
         var topico = repository.getReferenceById(id);
 
         topico.eliminar();
+
+        return ResponseEntity.noContent().build();
 
     }
 }
